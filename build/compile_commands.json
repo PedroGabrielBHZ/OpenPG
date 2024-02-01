@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/pedro/Code/CPP/OpenPG/build",
+  "command": "/usr/bin/g++   -g -std=gnu++14 -o CMakeFiles/main.dir/main.cpp.o -c /home/pedro/Code/CPP/OpenPG/main.cpp",
+  "file": "/home/pedro/Code/CPP/OpenPG/main.cpp",
+  "output": "CMakeFiles/main.dir/main.cpp.o"
+}
+]
