@@ -12,6 +12,26 @@ const GLint WIDTH = 800, HEIGHT = 600;
 // VBO : vertex buffer object
 GLuint VAO, VBO, shader;
 
+// Vertex Shader code
+static const char *vShader = R"gl(
+  #version 330
+  layout (location = 0) in vec3 pos;
+  void main()
+  {
+    gl_Position = vec4(0.6 * pos.x, 0.6 * pos.y, pos.z, 1.0);
+  }
+)gl";
+
+// Fragment Shader code
+static const char *fShader = R"gl(
+  #version 330
+  out vec4 colour;
+  void main()
+  {
+    colour = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+)gl";
+
 /**
  * Creates a triangle.
  */
