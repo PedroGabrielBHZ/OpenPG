@@ -1,9 +1,14 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <cmath>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
@@ -11,15 +16,21 @@ const GLint WIDTH = 800, HEIGHT = 600;
 // Vertex shader
 // VAO : vertex array object
 // VBO : vertex buffer object
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformModel;
+
+bool direction = true;
+float triOffset = 0.0f;
+float triMaxOffset = 0.7f;
+float triIncrement = 0.005f;
 
 // Vertex Shader code
 static const char *vShader = R"gl(
   #version 330
   layout (location = 0) in vec3 pos;
+  uniform mat4 model;
   void main()
   {
-    gl_Position = vec4(0.6 * pos.x, 0.6 * pos.y, pos.z, 1.0);
+    gl_Position = model * vec4(0.6 * pos.x, 0.6 * pos.y, pos.z, 1.0);
   }
 )gl";
 
@@ -122,6 +133,8 @@ void compileShaders()
         std::cout << "Error validating program: " << eLog << std::endl;
         return;
     }
+
+    uniformModel = glGetUniformLocation(shader, "model");
 }
 
 int main()
@@ -183,12 +196,36 @@ int main()
         // Get + handle user input events
         glfwPollEvents();
 
+        // Add the triangle offset
+        if (direction)
+        {
+            triOffset += triIncrement;
+        }
+        else
+        {
+            triOffset -= triIncrement;
+        }
+
+        if (abs(triOffset) >= triMaxOffset)
+        {
+            direction = !direction;
+        }
+
         // Clear window
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Use the created shader program
         glUseProgram(shader);
+
+        // Create a transformation matrix
+        glm::mat4 model(1.0f);
+
+        // Translate the triangle
+        model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+
+        // Send the transformation matrix to the shader
+        glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
         // Bind the VAO
         glBindVertexArray(VAO);
