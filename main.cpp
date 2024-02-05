@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -61,6 +62,68 @@ void CreateTriangle()
     glBindVertexArray(0);
 }
 
+void addShader(GLuint theProgram, const char *shaderCode, GLenum shaderType)
+{
+    GLuint theShader = glCreateShader(shaderType);
+
+    const GLchar *theCode[1];
+    theCode[0] = shaderCode;
+
+    GLint codeLength[1];
+    codeLength[0] = strlen(shaderCode);
+
+    glShaderSource(theShader, 1, theCode, codeLength);
+    glCompileShader(theShader);
+
+    GLint result = 0;
+    GLchar eLog[1024] = {0};
+
+    glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+        glGetShaderInfoLog(theShader, sizeof(eLog), NULL, eLog);
+        std::cout << "Error compiling the " << shaderType << " shader: " << eLog << std::endl;
+        return;
+    }
+
+    glAttachShader(theProgram, theShader);
+}
+
+void compileShaders()
+{
+    shader = glCreateProgram();
+
+    if (!shader)
+    {
+        std::cout << "Error creating shader program" << std::endl;
+        return;
+    }
+
+    addShader(shader, vShader, GL_VERTEX_SHADER);
+    addShader(shader, fShader, GL_FRAGMENT_SHADER);
+
+    GLint result = 0;
+    GLchar eLog[1024] = {0};
+
+    glLinkProgram(shader);
+    glGetProgramiv(shader, GL_LINK_STATUS, &result);
+    if (!result)
+    {
+        glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
+        std::cout << "Error linking program: " << eLog << std::endl;
+        return;
+    }
+
+    glValidateProgram(shader);
+    glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
+    if (!result)
+    {
+        glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
+        std::cout << "Error validating program: " << eLog << std::endl;
+        return;
+    }
+}
+
 int main()
 {
     // Initialize GLFW
@@ -110,6 +173,10 @@ int main()
     // Setup viewport size
     glViewport(0, 0, bufferWidth, bufferHeight);
 
+    // Create the triangle
+    CreateTriangle();
+    compileShaders();
+
     // Loop until window closed
     while (!glfwWindowShouldClose(mainWindow))
     {
@@ -119,6 +186,15 @@ int main()
         // Clear window
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // Use the created shader program
+        glUseProgram(shader);
+
+        // Bind the VAO
+        glBindVertexArray(VAO);
+
+        // Draw the triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // Swap the front and back buffers
         glfwSwapBuffers(mainWindow);
