@@ -1,3 +1,0 @@
-/home/pedro/Code/CPP/OpenPG/build/CMakeFiles/main.dir
-/home/pedro/Code/CPP/OpenPG/build/CMakeFiles/edit_cache.dir
-/home/pedro/Code/CPP/OpenPG/build/CMakeFiles/rebuild_cache.dir
