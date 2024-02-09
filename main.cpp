@@ -19,7 +19,10 @@ const float toRadians = 3.14159265f / 180.0f;
 // Vertex shader
 // VAO : vertex array object
 // VBO : vertex buffer object
-GLuint VAO, VBO, shader, uniformModel;
+// IBO : index buffer object
+// shader : shader program
+// uniformModel : transformation matrix
+GLuint VAO, VBO, IBO, shader, uniformModel;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -61,15 +64,28 @@ static const char *fShader = R"gl(
  */
 void CreateTriangle()
 {
+    // Define the indices of the triangle
+    unsigned int indices[] = {
+        0, 3, 1,
+        1, 3, 2,
+        2, 3, 0,
+        0, 1, 2};
+
     // Define the vertices of the triangle
     GLfloat vertices[] = {
         -1.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 1.0f,
         1.0f, -1.0f, 0.0f,
         0.0f, 1.0f, 0.0f};
 
     // Create a vertex array object
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
+
+    // Create an index buffer object
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Create a vertex buffer object
     glGenBuffers(1, &VBO);
@@ -81,8 +97,9 @@ void CreateTriangle()
     glEnableVertexAttribArray(0);
 
     // Unbind the VBO and VAO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void addShader(GLuint theProgram, const char *shaderCode, GLenum shaderType)
@@ -195,6 +212,9 @@ int main()
         return 1;
     }
 
+    // Depth buffer
+    glEnable(GL_DEPTH_TEST);
+
     // Setup viewport size
     glViewport(0, 0, bufferWidth, bufferHeight);
 
@@ -231,7 +251,7 @@ int main()
 
         // Clear window
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use the created shader program
         glUseProgram(shader);
@@ -240,9 +260,8 @@ int main()
         glm::mat4 model(1.0f);
 
         // Translate the triangle
-        // model = glm::rotate(model, currAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::rotate(model, currAngle * toRadians, glm::vec3(1.0f, 1.0f, 0.0f));
         // model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
-
         model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
         // Send the transformation matrix to the shader
@@ -251,8 +270,23 @@ int main()
         // Bind the VAO
         glBindVertexArray(VAO);
 
+        // Bind the IBO
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
         // Draw the triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
+        // Unbind the VAO
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Unbind the IBO
+        glBindVertexArray(0);
+
+        // Draw the triangle
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // Unbind the shader program
+        glUseProgram(0);
 
         // Swap the front and back buffers
         glfwSwapBuffers(mainWindow);
