@@ -32,20 +32,27 @@ float currAngle = 0.0f;
 static const char *vShader = R"gl(
   #version 330
   layout (location = 0) in vec3 pos;
+
+  out vec4 vColour;
+
   uniform mat4 model;
   void main()
   {
-    gl_Position = model * vec4(0.6 * pos.x, 0.6 * pos.y, pos.z, 1.0);
+    gl_Position = model * vec4(pos, 1.0);
+    vColour = vec4(clamp(pos, 0.0, 1.0), 1.0);
   }
 )gl";
 
 // Fragment Shader code
 static const char *fShader = R"gl(
   #version 330
+
+  in vec4 vColour;
+
   out vec4 colour;
   void main()
   {
-    colour = vec4(1.0, 0.0, 0.0, 1.0);
+    colour = vColour;
   }
 )gl";
 
@@ -233,9 +240,10 @@ int main()
         glm::mat4 model(1.0f);
 
         // Translate the triangle
-        model = glm::rotate(model, currAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(triOffset * 3, triOffset * 5, 1.0f));
+        // model = glm::rotate(model, currAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+        // model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+
+        model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
         // Send the transformation matrix to the shader
         glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
